@@ -1,0 +1,24 @@
+
+INPUT-UNITS     INCHES
+
+WHEEL     1
+
+LINE               4            D22
+LINE               6            D23
+LINE               8            D24
+LINE              10            D25
+LINE              25            D26
+LINE              40            D27
+CIRCLE            24            D20
+CIRCLE            30            D18
+CIRCLE            35            D17
+CIRCLE            44            D21
+CIRCLE            45            D14
+CIRCLE            63            D16
+CIRCLE            65            D15
+CIRCLE            70            D11
+CIRCLE            73            D13
+CIRCLE            90            D12
+CIRCLE            98            D10
+FLASH     AB00                 0.00000  D19
+

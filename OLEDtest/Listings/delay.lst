@@ -1,0 +1,43 @@
+C51 COMPILER V9.54   DELAY                                                                 07/04/2022 14:25:57 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN .\Objects\delay.obj
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE delay.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\del
+                    -ay.lst) TABS(2) OBJECT(.\Objects\delay.obj)
+
+line level    source
+
+   1          #include "delay.h"
+*** WARNING C318 IN LINE 6 OF delay.h: can't open file 'stdint.h'
+*** ERROR C141 IN LINE 11 OF delay.h: syntax error near 't', expected ')'
+   2          
+   3          void delay_ms(uint16_t t)
+*** ERROR C141 IN LINE 3 OF delay.c: syntax error near 't', expected ')'
+   4          {
+   5   1        uint16_t count = 0;
+*** ERROR C141 IN LINE 5 OF delay.c: syntax error near 'count'
+*** ERROR C202 IN LINE 5 OF delay.c: 'count': undefined identifier
+   6   1        TMOD |= 0x01;
+   7   1        TH0 = 0xFC;
+   8   1        TL0 = 0x66;
+   9   1        TR0 = 1;
+  10   1        while (1)
+  11   1        {
+  12   2          if (TF0 == 1)
+  13   2          {
+  14   3            count++;
+*** ERROR C202 IN LINE 14 OF delay.c: 'count': undefined identifier
+  15   3            TF0 = 0;
+  16   3            TH0 = 0xFC;
+  17   3            TL0 = 0x66;
+  18   3          }
+  19   2          if (count >= t)
+*** ERROR C202 IN LINE 19 OF delay.c: 'count': undefined identifier
+  20   2          {
+  21   3            break;
+  22   3          }
+  23   2        }
+  24   1      }
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  6 ERROR(S)

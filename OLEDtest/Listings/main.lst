@@ -1,0 +1,34 @@
+C51 COMPILER V9.54   MAIN                                                                  07/04/2022 14:25:56 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "delay.h"
+*** WARNING C318 IN LINE 6 OF delay.h: can't open file 'stdint.h'
+*** ERROR C141 IN LINE 11 OF delay.h: syntax error near 't', expected ')'
+   3          #include "oled.h"
+*** WARNING C318 IN LINE 4 OF oled.h: can't open file 'stdint.h'
+*** ERROR C141 IN LINE 6 OF spi.h: syntax error near ')'
+*** ERROR C141 IN LINE 16 OF oled.h: syntax error near 'data', expected ')'
+*** ERROR C141 IN LINE 17 OF oled.h: syntax error near 'command', expected ')'
+*** ERROR C141 IN LINE 18 OF oled.h: syntax error near 'x', expected ')'
+   4          
+   5          void main()
+   6          {
+   7   1        oled_init();
+   8   1        while(1)
+   9   1        {
+  10   2          oled_clear();
+  11   2          delay_ms(500);
+  12   2          oled_full();
+  13   2          delay_ms(500);
+  14   2        }
+  15   1      }
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  5 ERROR(S)

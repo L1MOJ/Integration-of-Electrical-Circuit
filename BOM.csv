@@ -1,0 +1,44 @@
+TITLE:                 Bill of Materials
+DATE:                  07/04/2022
+DESIGN:                draft1
+TEMPLATE:              D:\Desktop\template.bom
+CALLOUT:               bom.callouts
+
+项目编码     描述         型号         封装         数量   位号         MANU_PART_  
+                                                                        NO          
+==========   ==========   ==========   ==========   ====   ==========   ==========  
+0001         CRYSTAL      12M          DIP2-OSCIL      1   IC1          ?           
+                                       LATOR                                        
+0001         BLUE LED     BLUE LED     DIP2-LED        1   IC4          ?           
+0001         9VBATTERY    9V           DIP2-BATTE      1   J1           ?           
+                                       RY                                           
+0001         自锁开关     LOCKSWITCH   DIP6-LOCKS      1   J2           ?           
+                                       WITCH                                        
+0001         BUZZER       BUZZER       DIP2-BUZZE      1   J3           ?           
+                                       R                                            
+0001         NPN          NPN          DIP3-BJT        1   J4           ?           
+0001         LCD1602      LCD1602      DIP16-LCD       1   J5           ?           
+0001         蓝牙         HC05         DIP6HC05        1   J6           ?           
+0001         OLED         OLED         DIP7-OLED       1   J7           ?           
+0001         5k电位器     5K           DIP3-POTEN      1   R7           ?           
+                                       TIOMETER                                     
+0001         复位开关     NA           RESETSWITC      5   S1,S3-S6     ?           
+                                       H                                            
+0001         9V转5V       L7805        DIP3-L7805      1   U1           ?           
+0001         51单片机     STC89C52     DIP40-100-      1   U2           ?           
+                                       600                                          
+0001         温度传感器   NA           DIP4-90614      1   U3           ?           
+0001         烧写         USB2TTL      DIP4-CP210      1   U4           ?           
+                                       2                                            
+0002         47pFCAP      47PF         CAP             2   C2,C3        ?           
+0002         YELLOW LED   YELLOW LED   DIP2-LED        1   IC2          ?           
+0002         1kRES        1K           RES             1   R1           ?           
+0003         10uFCAP      10UF         CAP             1   C4           ?           
+0003         GREEN LED    GREEN LED    DIP2-LED        1   IC3          ?           
+0003         10kRES       10K          RES             1   R15          ?           
+0004         0.1uFCAP     0.1UF        CAP             7   C1,C5-C10    ?           
+0004         5.6kRES      5.6K         RES             1   R4           ?           
+0005         330RES       330          RES             3   R3,R5,R6     ?           
+0006         4.7kRES      4.7K         RES             1   R16          ?           
+TOTAL                                                 38                            
+==========   ==========   ==========   ==========   ====   ==========   ==========  

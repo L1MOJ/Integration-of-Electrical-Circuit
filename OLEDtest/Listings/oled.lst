@@ -1,0 +1,142 @@
+C51 COMPILER V9.54   OLED                                                                  07/04/2022 14:25:57 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE OLED
+OBJECT MODULE PLACED IN .\Objects\oled.obj
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE oled.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\oled
+                    -.lst) TABS(2) OBJECT(.\Objects\oled.obj)
+
+line level    source
+
+   1          #include "oled.h"
+*** WARNING C318 IN LINE 4 OF oled.h: can't open file 'stdint.h'
+*** ERROR C141 IN LINE 6 OF spi.h: syntax error near ')'
+*** WARNING C318 IN LINE 6 OF delay.h: can't open file 'stdint.h'
+*** ERROR C141 IN LINE 11 OF delay.h: syntax error near 't', expected ')'
+*** ERROR C141 IN LINE 16 OF oled.h: syntax error near 'data', expected ')'
+*** ERROR C141 IN LINE 17 OF oled.h: syntax error near 'command', expected ')'
+*** ERROR C141 IN LINE 18 OF oled.h: syntax error near 'x', expected ')'
+   2          
+   3          void oled_reset()
+   4          {
+   5   1        OLED_RESET = 0;
+   6   1        delay_ms(50);
+   7   1        OLED_RESET = 1;
+   8   1      }
+   9          
+  10          void oled_send_data(uint8_t data)
+*** ERROR C141 IN LINE 10 OF oled.c: syntax error near 'data', expected ')'
+  11          {
+  12   1        SPI_CS = 0;
+  13   1        OLED_DC = 1;
+  14   1        spi_read_write(data);
+*** ERROR C141 IN LINE 14 OF oled.c: syntax error near 'data'
+  15   1        SPI_CS = 1;
+  16   1      }
+  17          
+  18          void oled_send_command(uint8_t command)
+*** ERROR C141 IN LINE 18 OF oled.c: syntax error near 'command', expected ')'
+  19          {
+  20   1        SPI_CS = 0;
+  21   1        OLED_DC = 0;
+  22   1        spi_read_write(command);
+*** ERROR C202 IN LINE 22 OF oled.c: 'command': undefined identifier
+  23   1        SPI_CS = 1;
+  24   1      }
+  25          
+  26          void oled_set_position(uint8_t x, uint8_t y)
+*** ERROR C141 IN LINE 26 OF oled.c: syntax error near 'x', expected ')'
+  27          {
+  28   1        oled_send_command(0xb0 + y);
+*** ERROR C202 IN LINE 28 OF oled.c: 'y': undefined identifier
+  29   1        oled_send_command((x & 0x0f) | 0x00);
+*** ERROR C202 IN LINE 29 OF oled.c: 'x': undefined identifier
+  30   1        oled_send_command(((x & 0xf0) >> 4) | 0x10);
+*** ERROR C202 IN LINE 30 OF oled.c: 'x': undefined identifier
+  31   1      }
+  32          
+  33          void oled_init(void)
+  34          {
+  35   1        SPI_CS = 1;
+  36   1        SPI_SCK = 1;
+  37   1        oled_reset();
+  38   1      
+  39   1        oled_send_command(0xAE); // 关闭显示
+C51 COMPILER V9.54   OLED                                                                  07/04/2022 14:25:57 PAGE 2   
+
+  40   1        oled_send_command(0x00); // set low column address
+  41   1        oled_send_command(0x10); // set high column address
+  42   1        oled_send_command(0x40); // set display start line
+  43   1        // oled_send_command(0x81); // 设置对比度命令
+  44   1        // oled_send_command(0x00);
+  45   1        oled_send_command(0xA1); // 设置细分重映射 (0xA1正常,0xA0左右反置)
+  46   1        oled_send_command(0xC8); // 设置列输出扫描方向 (0xC8正常,0xC0上下反置)
+  47   1        oled_send_command(0xA6); // 设置正常/反向 (0xA6正常显示, 0xA7反向显示)
+  48   1        oled_send_command(0xA8); // 设置多路复用比率
+  49   1        oled_send_command(0x3F);
+  50   1        oled_send_command(0xD3); // 设置显示偏移(垂直偏移)
+  51   1        oled_send_command(0x00);
+  52   1        oled_send_command(0xD5); // 设置显示时钟分频
+  53   1        oled_send_command(0x80);
+  54   1        oled_send_command(0xD9); // 设置预充电期
+  55   1        oled_send_command(0xF1); // 将预充电设置为15个时钟并将其放电设置为1个时钟
+  56   1        oled_send_command(0xDA); // 设置COM引脚硬件配置
+  57   1        oled_send_command(0x12); // 启用备用COM引脚配置
+  58   1        oled_send_command(0xDB); // 设置Vcomh取消选择级别
+  59   1        oled_send_command(0x00); // ~ 0.65 x VCC
+  60   1        oled_send_command(0x20); // 设置内存寻址模式
+  61   1        oled_send_command(0x02); // 页面寻址模式
+  62   1        oled_send_command(0x8d); // 充电凹凸设置
+  63   1        oled_send_command(0x14); // 在显示期间启用电荷泵
+  64   1        oled_send_command(0xA4); // entire display on
+  65   1        oled_send_command(0xA6); // set Normal display
+  66   1        oled_send_command(0xaf); // 开启显示
+  67   1        oled_set_position(0, 0);
+*** ERROR C208 IN LINE 67 OF oled.c: '_oled_set_position': too many actual parameters
+  68   1      }
+  69          
+  70          void oled_clear(void)
+  71          {
+  72   1        uint8_t y, x;
+*** ERROR C202 IN LINE 72 OF oled.c: 'uint8_t': undefined identifier
+*** ERROR C141 IN LINE 72 OF oled.c: syntax error near 'y'
+  73   1      
+  74   1        for (y = 0; y < 8; y++)
+*** ERROR C202 IN LINE 74 OF oled.c: 'y': undefined identifier
+  75   1        {
+  76   2          oled_send_command(0xb0 + y);
+*** ERROR C202 IN LINE 76 OF oled.c: 'y': undefined identifier
+  77   2          oled_send_command(0x01);
+  78   2          oled_send_command(0x10);
+  79   2          for (x = 0; x < OLED_WIDTH; x++)
+*** ERROR C202 IN LINE 79 OF oled.c: 'x': undefined identifier
+  80   2          {
+  81   3            oled_send_data(0x00);
+  82   3          }
+  83   2        }
+  84   1      }
+  85          
+  86          void oled_full(void)
+  87          {
+  88   1        uint8_t y, x;
+*** ERROR C202 IN LINE 88 OF oled.c: 'uint8_t': undefined identifier
+*** ERROR C141 IN LINE 88 OF oled.c: syntax error near 'y'
+  89   1      
+  90   1        for (y = 0; y < 8; y++)
+*** ERROR C202 IN LINE 90 OF oled.c: 'y': undefined identifier
+  91   1        {
+  92   2          oled_send_command(0xb0 + y);
+C51 COMPILER V9.54   OLED                                                                  07/04/2022 14:25:57 PAGE 3   
+
+*** ERROR C202 IN LINE 92 OF oled.c: 'y': undefined identifier
+  93   2          oled_send_command(0x01);
+  94   2          oled_send_command(0x10);
+  95   2          for (x = 0; x < OLED_WIDTH; x++)
+*** ERROR C202 IN LINE 95 OF oled.c: 'x': undefined identifier
+  96   2          {
+  97   3            oled_send_data(0xFF);
+  98   3          }
+  99   2        }
+ 100   1      }
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  24 ERROR(S)

@@ -1,0 +1,283 @@
+C51 COMPILER V9.54   90614                                                                 07/08/2022 14:11:06 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE 90614
+OBJECT MODULE PLACED IN 90614.OBJ
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE 90614.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include <intrins.h>
+   3          #include <math.h>
+   4          #include "delay.h"
+   5          
+   6          sbit  SCL=P3^6;//时钟线 
+   7          sbit  SDA=P3^7;//数据线 
+   8          bdata unsigned char flag;//可位寻址数据 
+   9          sbit bit_out=flag^7; 
+  10          sbit bit_in=flag^0; 
+  11          unsigned char DataH,DataL,Pecreg;
+  12          #define  Nack_counter  10;
+  13          
+  14          
+  15          
+  16          /*void Temp_Init(void)
+  17          {
+  18            SCL=1;
+  19            SDA=1;
+  20            _nop_();  
+  21            _nop_();
+  22            _nop_();
+  23            _nop_();  
+  24            SCL=0;  
+  25            delay(1000);  
+  26            SCL=1;
+  27          }*/
+  28          
+  29          
+  30          void   start_bit(void) 
+  31          {    
+  32   1        SDA=1;    
+  33   1        _nop_();
+  34   1        _nop_();
+  35   1        _nop_();
+  36   1        _nop_();
+  37   1        _nop_();    
+  38   1        SCL=1;    
+  39   1        _nop_();
+  40   1        _nop_();
+  41   1        _nop_();
+  42   1        _nop_();
+  43   1        _nop_();   
+  44   1        SDA=0;   
+  45   1        _nop_();
+  46   1        _nop_();
+  47   1        _nop_();
+  48   1        _nop_();
+  49   1        _nop_();    
+  50   1        SCL=0;    
+  51   1        _nop_();
+  52   1        _nop_();
+  53   1        _nop_();
+  54   1        _nop_();
+  55   1        _nop_();
+C51 COMPILER V9.54   90614                                                                 07/08/2022 14:11:06 PAGE 2   
+
+  56   1      
+  57   1      } 
+  58          //------------------------------ 
+  59          void   stop_bit(void) 
+  60          {
+  61   1        SCL=0;  
+  62   1        _nop_();
+  63   1        _nop_();
+  64   1        _nop_();
+  65   1        _nop_();
+  66   1        _nop_(); 
+  67   1        SDA=0;   
+  68   1        _nop_();
+  69   1        _nop_();
+  70   1        _nop_();
+  71   1        _nop_();
+  72   1        _nop_();
+  73   1        SCL=1;  
+  74   1        _nop_();
+  75   1        _nop_();
+  76   1        _nop_();
+  77   1        _nop_();
+  78   1        _nop_();
+  79   1        SDA=1; 
+  80   1      } 
+  81          
+  82          //-----------发送一个位--------- 
+  83          void  send_bit(void) 
+  84          {   
+  85   1        if(bit_out==0)
+  86   1          SDA=0;
+  87   1        else     
+  88   1          SDA=1; 
+  89   1        _nop_(); 
+  90   1        SCL=1; 
+  91   1        _nop_();
+  92   1        _nop_();
+  93   1        _nop_();
+  94   1        _nop_(); 
+  95   1        _nop_();
+  96   1        _nop_();
+  97   1        _nop_();
+  98   1        _nop_();
+  99   1        SCL=0;
+ 100   1        _nop_();
+ 101   1        _nop_();
+ 102   1        _nop_();
+ 103   1        _nop_(); 
+ 104   1        _nop_();
+ 105   1        _nop_();
+ 106   1        _nop_();
+ 107   1        _nop_(); 
+ 108   1      } 
+ 109          
+ 110          //----------接收一个位----------
+ 111          void receive_bit(void) 
+ 112          {   
+ 113   1        SDA=1;
+ 114   1        bit_in=1;  
+ 115   1        SCL=1;  
+ 116   1        _nop_();
+ 117   1        _nop_();
+C51 COMPILER V9.54   90614                                                                 07/08/2022 14:11:06 PAGE 3   
+
+ 118   1        _nop_();
+ 119   1        _nop_();  
+ 120   1        _nop_();
+ 121   1        _nop_();
+ 122   1        _nop_();
+ 123   1        _nop_(); 
+ 124   1        bit_in=SDA;
+ 125   1        _nop_(); 
+ 126   1        SCL=0; 
+ 127   1        _nop_();
+ 128   1        _nop_();
+ 129   1        _nop_();
+ 130   1        _nop_(); 
+ 131   1        _nop_();
+ 132   1        _nop_();
+ 133   1        _nop_();
+ 134   1        _nop_(); 
+ 135   1      } 
+ 136          
+ 137          //---------发送一个字节---------
+ 138            
+ 139          void  tx_byte(unsigned char dat_byte) 
+ 140          {    
+ 141   1        char i,n,dat;   
+ 142   1        n=Nack_counter; 
+ 143   1      TX_again:    
+ 144   1        dat=dat_byte;    
+ 145   1        for(i=0;i<8;i++)    
+ 146   1        {      
+ 147   2          if(dat&0x80)       
+ 148   2            bit_out=1;      
+ 149   2          else       
+ 150   2            bit_out=0;      
+ 151   2          send_bit();      
+ 152   2          dat=dat<<1;    
+ 153   2        }    
+ 154   1        receive_bit();    
+ 155   1        if(bit_in==1)    
+ 156   1        {     
+ 157   2          stop_bit();     
+ 158   2          if(n!=0)     
+ 159   2            {n--;goto Repeat;}     
+ 160   2          else     
+ 161   2            goto exit;    
+ 162   2        }    
+ 163   1        else     
+ 164   1          goto exit; 
+ 165   1      Repeat:     
+ 166   1        start_bit();    
+ 167   1        goto TX_again; 
+ 168   1      exit: 
+ 169   1        ; 
+ 170   1      } 
+ 171          
+ 172          
+ 173          //----------接收一个字节-------- 
+ 174          unsigned char rx_byte(void) 
+ 175          {  
+ 176   1        unsigned char i,dat;   
+ 177   1        dat=0;  
+ 178   1        for(i=0;i<8;i++)   
+ 179   1        {   
+C51 COMPILER V9.54   90614                                                                 07/08/2022 14:11:06 PAGE 4   
+
+ 180   2          dat=dat<<1;     
+ 181   2          receive_bit(); 
+ 182   2          if(bit_in==1)      
+ 183   2            dat=dat+1;   
+ 184   2        } 
+ 185   1        send_bit();   
+ 186   1        return dat; 
+ 187   1      } 
+ 188          
+ 189          
+ 190          /*double Read_AmbientTemp(void) 
+ 191          {  
+ 192            double temp;
+ 193            start_bit(); 
+ 194            tx_byte(0x00);  //Send SlaveAddress 
+ 195            tx_byte(0x06);  //Send Command   //------------  
+ 196            start_bit();   
+ 197            tx_byte(0x01); 
+ 198            bit_out=0;  
+ 199            DataL=rx_byte(); 
+ 200            bit_out=0;  
+ 201            DataH=rx_byte();  
+ 202            bit_out=1;  
+ 203            Pecreg=rx_byte(); 
+ 204            stop_bit(); 
+ 205            temp =100*((DataH*256+DataL)*0.02-273.15);
+ 206            //temp = (int)temp;
+ 207            //temp = ((float)((int)((temp+0.005)*100)))/100;          //保留两位小数
+ 208            return temp; 
+ 209          }*/
+ 210          
+ 211          double Read_ObjectTemp(void) 
+ 212          {  
+ 213   1        double temp;
+ 214   1        start_bit(); 
+ 215   1        tx_byte(0x00);  //Send SlaveAddress 
+ 216   1        tx_byte(0x07);  //Send Command   //------------  
+ 217   1        start_bit();   
+ 218   1        tx_byte(0x01); 
+ 219   1        bit_out=0;  
+ 220   1        DataL=rx_byte(); 
+ 221   1        bit_out=0;  
+ 222   1        DataH=rx_byte();  
+ 223   1        bit_out=1;  
+ 224   1        Pecreg=rx_byte(); 
+ 225   1        stop_bit(); 
+ 226   1        temp =100*((DataH*256+DataL)*0.02-273.15);
+ 227   1        //temp = (int)temp;
+ 228   1        //temp=2*(DataH*256+DataL)-27315;
+ 229   1        //temp = 100*(temp-floor(temp));
+ 230   1        //temp = ((float)((int)((temp+0.005)*100)))/100; */         //保留两位小数
+ 231   1        
+ 232   1        return temp; 
+ 233   1      }
+ 234          
+ 235          /*double Read_BodyTemp(void)
+ 236          {
+ 237            double temp;
+ 238            start_bit(); 
+ 239            tx_byte(0x00);  //Send SlaveAddress 
+ 240            tx_byte(0x07);  //Send Command   //------------  
+ 241            start_bit();   
+C51 COMPILER V9.54   90614                                                                 07/08/2022 14:11:06 PAGE 5   
+
+ 242            tx_byte(0x01); 
+ 243            bit_out=0;  
+ 244            DataL=rx_byte(); 
+ 245            bit_out=0;  
+ 246            DataH=rx_byte();  
+ 247            bit_out=1;  
+ 248            Pecreg=rx_byte(); 
+ 249            stop_bit(); 
+ 250            temp =0.2676*((DataH*256+DataL)*0.02-273.15)+2745;
+ 251            return temp;
+ 252          }*/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    276    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

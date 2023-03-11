@@ -1,0 +1,291 @@
+C51 COMPILER V9.54   90614                                                                 07/08/2022 09:34:50 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE 90614
+OBJECT MODULE PLACED IN .\Objects\90614.obj
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE 90614.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\906
+                    -14.lst) TABS(2) OBJECT(.\Objects\90614.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include <intrins.h>
+   3          #include "delay.h"
+   4          
+   5          sbit  SCL=P3^6;//时钟线 
+   6          sbit  SDA=P3^7;//数据线 
+   7          bdata unsigned char flag;//可位寻址数据 
+   8          sbit bit_out=flag^7; 
+   9          sbit bit_in=flag^0; 
+  10          unsigned char DataH,DataL,Pecreg;
+  11          #define  Nack_counter  10
+  12          
+  13          
+  14          
+  15          void Temp_Init(void)
+  16          {
+  17   1        SCL=1;
+  18   1        SDA=1;
+  19   1        _nop_();  
+  20   1        _nop_();
+  21   1        _nop_();
+  22   1        _nop_();  
+  23   1        SCL=0;  
+  24   1        delay(1000);  
+  25   1        SCL=1;
+  26   1      }
+  27          
+  28          
+  29          void   start_bit(void) 
+  30          {    
+  31   1        SDA=1;    
+  32   1        _nop_();
+  33   1        _nop_();
+  34   1        _nop_();
+  35   1        _nop_();
+  36   1        _nop_();    
+  37   1        SCL=1;    
+  38   1        _nop_();
+  39   1        _nop_();
+  40   1        _nop_();
+  41   1        _nop_();
+  42   1        _nop_();   
+  43   1        SDA=0;   
+  44   1        _nop_();
+  45   1        _nop_();
+  46   1        _nop_();
+  47   1        _nop_();
+  48   1        _nop_();    
+  49   1        SCL=0;    
+  50   1        _nop_();
+  51   1        _nop_();
+  52   1        _nop_();
+  53   1        _nop_();
+  54   1        _nop_();
+C51 COMPILER V9.54   90614                                                                 07/08/2022 09:34:50 PAGE 2   
+
+  55   1      
+  56   1      } 
+  57          //------------------------------ 
+  58          void   stop_bit(void) 
+  59          {
+  60   1        SCL=0;  
+  61   1        _nop_();
+  62   1        _nop_();
+  63   1        _nop_();
+  64   1        _nop_();
+  65   1        _nop_(); 
+  66   1        SDA=0;   
+  67   1        _nop_();
+  68   1        _nop_();
+  69   1        _nop_();
+  70   1        _nop_();
+  71   1        _nop_();
+  72   1        SCL=1;  
+  73   1        _nop_();
+  74   1        _nop_();
+  75   1        _nop_();
+  76   1        _nop_();
+  77   1        _nop_();
+  78   1        SDA=1; 
+  79   1      } 
+  80          
+  81          //-----------发送一个位--------- 
+  82          void  send_bit(void) 
+  83          {   
+  84   1        if(bit_out==0)
+  85   1          SDA=0;
+  86   1        else     
+  87   1          SDA=1; 
+  88   1        _nop_(); 
+  89   1        SCL=1; 
+  90   1        _nop_();
+  91   1        _nop_();
+  92   1        _nop_();
+  93   1        _nop_(); 
+  94   1        _nop_();
+  95   1        _nop_();
+  96   1        _nop_();
+  97   1        _nop_();
+  98   1        SCL=0;
+  99   1        _nop_();
+ 100   1        _nop_();
+ 101   1        _nop_();
+ 102   1        _nop_(); 
+ 103   1        _nop_();
+ 104   1        _nop_();
+ 105   1        _nop_();
+ 106   1        _nop_(); 
+ 107   1      } 
+ 108          
+ 109          //----------接收一个位----------
+ 110          void receive_bit(void) 
+ 111          {   
+ 112   1        SDA=1;
+ 113   1        bit_in=1;  
+ 114   1        SCL=1;  
+ 115   1        _nop_();
+ 116   1        _nop_();
+C51 COMPILER V9.54   90614                                                                 07/08/2022 09:34:50 PAGE 3   
+
+ 117   1        _nop_();
+ 118   1        _nop_();  
+ 119   1        _nop_();
+ 120   1        _nop_();
+ 121   1        _nop_();
+ 122   1        _nop_(); 
+ 123   1        bit_in=SDA;
+ 124   1        _nop_(); 
+ 125   1        SCL=0; 
+ 126   1        _nop_();
+ 127   1        _nop_();
+ 128   1        _nop_();
+ 129   1        _nop_(); 
+ 130   1        _nop_();
+ 131   1        _nop_();
+ 132   1        _nop_();
+ 133   1        _nop_(); 
+ 134   1      } 
+ 135          
+ 136          //---------发送一个字节---------
+ 137            
+ 138          void  tx_byte(unsigned char dat_byte) 
+ 139          {    
+ 140   1        char i,n,dat;   
+ 141   1        n=Nack_counter; 
+ 142   1      TX_again:    
+ 143   1        dat=dat_byte;    
+ 144   1        for(i=0;i<8;i++)    
+ 145   1        {      
+ 146   2          if(dat&0x80)       
+ 147   2            bit_out=1;      
+ 148   2          else       
+ 149   2            bit_out=0;      
+ 150   2          send_bit();      
+ 151   2          dat=dat<<1;    
+ 152   2        }    
+ 153   1        receive_bit();    
+ 154   1        if(bit_in==1)    
+ 155   1        {     
+ 156   2          stop_bit();     
+ 157   2          if(n!=0)     
+ 158   2            {n--;goto Repeat;}     
+ 159   2          else     
+ 160   2            goto exit;    
+ 161   2        }    
+ 162   1        else     
+ 163   1          goto exit; 
+ 164   1      Repeat:     
+ 165   1        start_bit();    
+ 166   1        goto TX_again; 
+ 167   1      exit: 
+ 168   1        ; 
+ 169   1      } 
+ 170          
+ 171          
+ 172          //----------接收一个字节-------- 
+ 173          unsigned char rx_byte(void) 
+ 174          {  
+ 175   1        unsigned char i,dat;   
+ 176   1        dat=0;  
+ 177   1        for(i=0;i<8;i++)   
+ 178   1        {   
+C51 COMPILER V9.54   90614                                                                 07/08/2022 09:34:50 PAGE 4   
+
+ 179   2          dat=dat<<1;     
+ 180   2          receive_bit(); 
+ 181   2          if(bit_in==1)      
+ 182   2            dat=dat+1;   
+ 183   2        } 
+ 184   1        send_bit();   
+ 185   1        return dat; 
+ 186   1      } 
+ 187          
+ 188          
+ 189          double Read_AmbientTemp(void) 
+ 190          {  
+ 191   1        double temp;
+ 192   1        start_bit(); 
+ 193   1        tx_byte(0x00);  //Send SlaveAddress 
+ 194   1        tx_byte(0x06);  //Send Command   //------------  
+ 195   1        start_bit();   
+ 196   1        tx_byte(0x01); 
+ 197   1        bit_out=0;  
+ 198   1        DataL=rx_byte(); 
+ 199   1        bit_out=0;  
+ 200   1        DataH=rx_byte();  
+ 201   1        bit_out=1;  
+ 202   1        Pecreg=rx_byte(); 
+ 203   1        stop_bit(); 
+ 204   1        temp =(DataH*256+DataL)*0.02-273.15;
+ 205   1        temp = ((float)((int)((temp+0.005)*100)))/100;          //保留两位小数
+ 206   1        return temp; 
+ 207   1      }
+ 208          
+ 209          double Read_ObjectTemp(void) 
+ 210          {  
+ 211   1        double temp;
+ 212   1        start_bit(); 
+ 213   1        tx_byte(0x00);  //Send SlaveAddress 
+ 214   1        tx_byte(0x07);  //Send Command   //------------  
+ 215   1        start_bit();   
+ 216   1        tx_byte(0x01); 
+ 217   1        bit_out=0;  
+ 218   1        DataL=rx_byte(); 
+ 219   1        bit_out=0;  
+ 220   1        DataH=rx_byte();  
+ 221   1        bit_out=1;  
+ 222   1        Pecreg=rx_byte(); 
+ 223   1        stop_bit(); 
+ 224   1        temp =(DataH*256+DataL)*0.02-273.15;
+ 225   1        temp = ((float)((int)((temp+0.005)*100)))/100;          //保留两位小数
+ 226   1        return temp; 
+ 227   1      }
+ 228          
+ 229          double TF_to_Tbody()
+ 230          {
+ 231   1          double ta=Read_AmbientTemp();
+ 232   1          double tf=Read_ObjectTemp();
+ 233   1          double tf_low, tf_high = 0;
+ 234   1          double tbody=0;
+ 235   1          double TA_LEVEL=25;
+ 236   1          if(ta <= TA_LEVEL)
+ 237   1          {
+ 238   2              tf_low  = 32.66 + 0.186*(ta-TA_LEVEL);
+ 239   2              tf_high = 34.84 + 0.148*(ta-TA_LEVEL);
+ 240   2          }
+C51 COMPILER V9.54   90614                                                                 07/08/2022 09:34:50 PAGE 5   
+
+ 241   1          else
+ 242   1          {
+ 243   2              tf_low  = 32.66 + 0.086*(ta-TA_LEVEL);
+ 244   2              tf_high = 34.84 + 0.1*(ta-TA_LEVEL);
+ 245   2          }
+ 246   1          if((tf_low <= tf)&&(tf <= tf_high))
+ 247   1          {
+ 248   2              tbody = 36.3 + 0.5/(tf_high - tf_low)*(tf - tf_low);
+ 249   2          }
+ 250   1          else if(tf > tf_high)
+ 251   1          {
+ 252   2              tbody = 36.8 + (0.829321 + 0.002364*ta)*(tf-tf_high);
+ 253   2          }
+ 254   1          else if(tf < tf_low)
+ 255   1          {
+ 256   2              tbody =  36.3 + (0.551658 + 0.021525*ta)*(tf-tf_low);
+ 257   2          }
+ 258   1          return tbody;
+ 259   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1003    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4      32
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

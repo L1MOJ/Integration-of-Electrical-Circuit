@@ -1,0 +1,7 @@
+"main.obj",
+"oled.obj",
+"delay.obj",
+"LCD1602.obj",
+"90614.obj" 
+TO "car" 
+RAMSIZE(256) 

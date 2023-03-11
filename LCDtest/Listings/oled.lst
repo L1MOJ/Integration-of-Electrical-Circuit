@@ -1,0 +1,954 @@
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE OLED
+OBJECT MODULE PLACED IN .\Objects\oled.obj
+COMPILER INVOKED BY: F:\Keil_v5\C51\BIN\C51.EXE oled.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\oled
+                    -.lst) TABS(2) OBJECT(.\Objects\oled.obj)
+
+line level    source
+
+   1          #include "oled.h"
+   2          #include "stdlib.h"
+   3          #include "oledfont.h"  
+   4           
+   5          
+   6          /**********************************************
+   7          //IIC Start
+   8          **********************************************/
+   9          void IIC_Start()
+  10          {
+  11   1      
+  12   1        OLED_SCLK_Set() ;
+  13   1        OLED_SDIN_Set();
+  14   1        OLED_SDIN_Clr();
+  15   1        OLED_SCLK_Clr();
+  16   1      }
+  17          
+  18          /**********************************************
+  19          //IIC Stop
+  20          **********************************************/
+  21          void IIC_Stop()
+  22          {
+  23   1        OLED_SCLK_Set() ;
+  24   1      //  OLED_SCLK_Clr();
+  25   1        OLED_SDIN_Clr();
+  26   1        OLED_SDIN_Set();
+  27   1        
+  28   1      }
+  29          
+  30          void IIC_Wait_Ack()
+  31          {
+  32   1      
+  33   1        //GPIOB->CRH &= 0XFFF0FFFF; //设置PB12为上拉输入模式
+  34   1        //GPIOB->CRH |= 0x00080000;
+  35   1      //  OLED_SDA = 1;
+  36   1      //  delay_us(1);
+  37   1        //OLED_SCL = 1;
+  38   1        //delay_us(50000);
+  39   1      /*  while(1)
+  40   1        {
+  41   1          if(!OLED_SDA)       //判断是否接收到OLED 应答信号
+  42   1          {
+  43   1            //GPIOB->CRH &= 0XFFF0FFFF; //设置PB12为通用推免输出模式
+  44   1            //GPIOB->CRH |= 0x00030000;
+  45   1            return;
+  46   1          }
+  47   1        }
+  48   1      */
+  49   1        OLED_SCLK_Set() ;
+  50   1        OLED_SCLK_Clr();
+  51   1      }
+  52          /**********************************************
+  53          // IIC Write byte
+  54          **********************************************/
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 2   
+
+  55          
+  56          void Write_IIC_Byte(unsigned char IIC_Byte)
+  57          {
+  58   1        unsigned char i;
+  59   1        unsigned char m,da;
+  60   1        da=IIC_Byte;
+  61   1        OLED_SCLK_Clr();
+  62   1        for(i=0;i<8;i++)    
+  63   1        {
+  64   2            m=da;
+  65   2          //  OLED_SCLK_Clr();
+  66   2          m=m&0x80;
+  67   2          if(m==0x80)
+  68   2          {OLED_SDIN_Set();}
+  69   2          else OLED_SDIN_Clr();
+  70   2            da=da<<1;
+  71   2          OLED_SCLK_Set();
+  72   2          OLED_SCLK_Clr();
+  73   2          }
+  74   1      
+  75   1      
+  76   1      }
+  77          /**********************************************
+  78          // IIC Write Command
+  79          **********************************************/
+  80          void Write_IIC_Command(unsigned char IIC_Command)
+  81          {
+  82   1         IIC_Start();
+  83   1         Write_IIC_Byte(0x78);            //Slave address,SA0=0
+  84   1        IIC_Wait_Ack(); 
+  85   1         Write_IIC_Byte(0x00);      //write command
+  86   1        IIC_Wait_Ack(); 
+  87   1         Write_IIC_Byte(IIC_Command); 
+  88   1        IIC_Wait_Ack(); 
+  89   1         IIC_Stop();
+  90   1      }
+  91          /**********************************************
+  92          // IIC Write Data
+  93          **********************************************/
+  94          void Write_IIC_Data(unsigned char IIC_Data)
+  95          {
+  96   1         IIC_Start();
+  97   1         Write_IIC_Byte(0x78);      //D/C#=0; R/W#=0
+  98   1        IIC_Wait_Ack(); 
+  99   1         Write_IIC_Byte(0x40);      //write data
+ 100   1        IIC_Wait_Ack(); 
+ 101   1         Write_IIC_Byte(IIC_Data);
+ 102   1        IIC_Wait_Ack(); 
+ 103   1         IIC_Stop();
+ 104   1      }
+ 105          void OLED_WR_Byte(unsigned dat,unsigned cmd)
+ 106          {
+ 107   1        if(cmd)
+ 108   1            {
+ 109   2      
+ 110   2         Write_IIC_Data(dat);
+ 111   2         
+ 112   2          }
+ 113   1        else {
+ 114   2         Write_IIC_Command(dat);
+ 115   2          
+ 116   2        }
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 3   
+
+ 117   1      
+ 118   1      
+ 119   1      }
+ 120          
+ 121          /********************************************
+ 122          // fill_Picture
+ 123          ********************************************/
+ 124          /*void fill_picture(unsigned char fill_Data)
+ 125          {
+ 126            unsigned char m,n;
+ 127            for(m=0;m<5;m++)
+ 128            {
+ 129              OLED_WR_Byte(0xb0+m,0);   //page0-page1
+ 130              OLED_WR_Byte(0x00,0);   //low column start address
+ 131              OLED_WR_Byte(0x10,0);   //high column start address
+ 132              for(n=0;n<64;n++)
+ 133                {
+ 134                  OLED_WR_Byte(fill_Data,1);
+ 135                }
+ 136            }
+ 137          } */
+ 138          
+ 139          void Draw_Hline(unsigned char x0,unsigned char x,unsigned char y0,unsigned int time)
+ 140          { 
+ 141   1        unsigned char y,mod,pos,i;
+ 142   1        if(y0%8==0){
+ 143   2           y=y0/8;
+ 144   2           pos = 0x01;
+ 145   2        }
+ 146   1        else{
+ 147   2          y = y0/8;
+ 148   2          mod = y0%8;
+ 149   2          switch(mod)
+ 150   2          {
+ 151   3            case 1:
+ 152   3            pos = 0x02;
+ 153   3            break;
+ 154   3            case 2:
+ 155   3            pos = 0x04;
+ 156   3            break;
+ 157   3            case 3:
+ 158   3            pos = 0x08;
+ 159   3            break;
+ 160   3            case 4:
+ 161   3            pos = 0x10;
+ 162   3            break;
+ 163   3            case 5:
+ 164   3            pos = 0x20;
+ 165   3            break;
+ 166   3            case 6:
+ 167   3            pos = 0x40;
+ 168   3            break;
+ 169   3            case 7:
+ 170   3            pos = 0x80;
+ 171   3            break;
+ 172   3            default:
+ 173   3            break;
+ 174   3      
+ 175   3          }
+ 176   2        }
+ 177   1        OLED_Set_Pos(x0,y);
+ 178   1        for(i=x0;i<x+1;i++)
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 4   
+
+ 179   1        {
+ 180   2          Delay_1ms(time);
+ 181   2          OLED_WR_Byte(pos,1);  
+ 182   2        }
+ 183   1      
+ 184   1      }
+ 185          
+ 186          void Draw_Vline(unsigned char y0,unsigned char y,unsigned char x0,unsigned int time)
+ 187          { 
+ 188   1        unsigned char y1,y2,pos,pos1,mod0,mod1,i;
+ 189   1          if(y0%8==0){
+ 190   2           y1=y0/8;
+ 191   2           pos = 0xff;
+ 192   2        }
+ 193   1        else{
+ 194   2          y1 = y0/8;
+ 195   2          mod0 = y0%8;
+ 196   2          switch(mod0)
+ 197   2          {
+ 198   3            case 1:
+ 199   3            pos = 0xfe;
+ 200   3            break;
+ 201   3            case 2:
+ 202   3            pos = 0xfc;
+ 203   3            break;
+ 204   3            case 3:
+ 205   3            pos = 0xf8;
+ 206   3            break;
+ 207   3            case 4:
+ 208   3            pos = 0x10;
+ 209   3            break;
+ 210   3            case 5:
+ 211   3            pos = 0xe0;
+ 212   3            break;
+ 213   3            case 6:
+ 214   3            pos = 0xc0;
+ 215   3            break;
+ 216   3            case 7:
+ 217   3            pos = 0x80;
+ 218   3            break;
+ 219   3            default:
+ 220   3            break;
+ 221   3      
+ 222   3          }
+ 223   2        }
+ 224   1        if(y%8==0){
+ 225   2           y2=y/8;
+ 226   2           pos1 = 0x01;
+ 227   2        }
+ 228   1        else{
+ 229   2          y2 = y/8;
+ 230   2          mod1 = y%8;
+ 231   2          switch(mod1)
+ 232   2          {
+ 233   3            case 1:
+ 234   3            pos1 = 0x03;
+ 235   3            break;
+ 236   3            case 2:
+ 237   3            pos1 = 0x07;
+ 238   3            break;
+ 239   3            case 3:
+ 240   3            pos1 = 0x0f;
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 5   
+
+ 241   3            break;
+ 242   3            case 4:
+ 243   3            pos1 = 0x1f;
+ 244   3            break;
+ 245   3            case 5:
+ 246   3            pos1 = 0x3f;
+ 247   3            break;
+ 248   3            case 6:
+ 249   3            pos1 = 0x7f;
+ 250   3            break;
+ 251   3            case 7:
+ 252   3            pos1 = 0xff;
+ 253   3            break;
+ 254   3            default:
+ 255   3            break;
+ 256   3      
+ 257   3          }
+ 258   2        }
+ 259   1        OLED_Set_Pos(x0,y1);
+ 260   1        OLED_WR_Byte(pos,1);
+ 261   1        Delay_1ms(time);
+ 262   1        OLED_Set_Pos(x0,y1+1);
+ 263   1        for(i=y1+1;i<y2;i++)
+ 264   1        {
+ 265   2          Delay_1ms(time);
+ 266   2          OLED_Set_Pos(x0,i);
+ 267   2          OLED_WR_Byte(0xff,1); 
+ 268   2        } 
+ 269   1          OLED_Set_Pos(x0,y2);
+ 270   1        Delay_1ms(time);
+ 271   1        OLED_WR_Byte(pos1,1);
+ 272   1      
+ 273   1      
+ 274   1      }
+ 275          void Clear(unsigned char y0,unsigned char y,unsigned char x0,unsigned int time)
+ 276          { 
+ 277   1        unsigned char y1,y2,pos,pos1,mod0,mod1,i;
+ 278   1          if(y0%8==0){
+ 279   2           y1=y0/8;
+ 280   2           pos = 0x00;
+ 281   2        }
+ 282   1        else{
+ 283   2          y1 = y0/8;
+ 284   2          mod0 = y0%8;
+ 285   2          switch(mod0)
+ 286   2          {
+ 287   3            case 1:
+ 288   3            pos = 0xfe;
+ 289   3            break;
+ 290   3            case 2:
+ 291   3            pos = 0xfc;
+ 292   3            break;
+ 293   3            case 3:
+ 294   3            pos = 0xf8;
+ 295   3            break;
+ 296   3            case 4:
+ 297   3            pos = 0x10;
+ 298   3            break;
+ 299   3            case 5:
+ 300   3            pos = 0xe0;
+ 301   3            break;
+ 302   3            case 6:
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 6   
+
+ 303   3            pos = 0xc0;
+ 304   3            break;
+ 305   3            case 7:
+ 306   3            pos = 0x80;
+ 307   3            break;
+ 308   3            default:
+ 309   3            break;
+ 310   3      
+ 311   3          }
+ 312   2        }
+ 313   1        if(y%8==0){
+ 314   2           y2=y/8;
+ 315   2           pos1 = 0x01;
+ 316   2        }
+ 317   1        else{
+ 318   2          y2 = y/8;
+ 319   2          mod1 = y%8;
+ 320   2          switch(mod1)
+ 321   2          {
+ 322   3            case 1:
+ 323   3            pos1 = 0x03;
+ 324   3            break;
+ 325   3            case 2:
+ 326   3            pos1 = 0x07;
+ 327   3            break;
+ 328   3            case 3:
+ 329   3            pos1 = 0x0f;
+ 330   3            break;
+ 331   3            case 4:
+ 332   3            pos1 = 0x1f;
+ 333   3            break;
+ 334   3            case 5:
+ 335   3            pos1 = 0x3f;
+ 336   3            break;
+ 337   3            case 6:
+ 338   3            pos1 = 0x7f;
+ 339   3            break;
+ 340   3            case 7:
+ 341   3            pos1 = 0xff;
+ 342   3            break;
+ 343   3            default:
+ 344   3            break;
+ 345   3      
+ 346   3          }
+ 347   2        }
+ 348   1        OLED_Set_Pos(x0,y1);
+ 349   1        OLED_WR_Byte(pos,1);
+ 350   1        Delay_1ms(time*8);
+ 351   1        OLED_Set_Pos(x0,y1+1);
+ 352   1        for(i=y1+1;i<y2;i++)
+ 353   1        {
+ 354   2          Delay_1ms(time*8);
+ 355   2          OLED_Set_Pos(x0,i);
+ 356   2          OLED_WR_Byte(0x00,1); 
+ 357   2        } 
+ 358   1          OLED_Set_Pos(x0,y2);
+ 359   1        Delay_1ms(time*8);
+ 360   1        OLED_WR_Byte(pos1,1);
+ 361   1      
+ 362   1      
+ 363   1      }
+ 364          
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 7   
+
+ 365          void Draw_VlineF(unsigned char y0,unsigned char y,unsigned char x0,unsigned int time)
+ 366          { 
+ 367   1        unsigned char y1,y2,pos,pos1,mod0,mod1,i;
+ 368   1          if(y0%8==0){
+ 369   2           y1=y0/8;
+ 370   2           pos = 0xff;
+ 371   2        }
+ 372   1        else{
+ 373   2          y1 = y0/8;
+ 374   2          mod0 = y0%8;
+ 375   2          switch(mod0)
+ 376   2          {
+ 377   3            case 1:
+ 378   3            pos = 0xfe;
+ 379   3            break;
+ 380   3            case 2:
+ 381   3            pos = 0xfc;
+ 382   3            break;
+ 383   3            case 3:
+ 384   3            pos = 0xf8;
+ 385   3            break;
+ 386   3            case 4:
+ 387   3            pos = 0x10;
+ 388   3            break;
+ 389   3            case 5:
+ 390   3            pos = 0xe0;
+ 391   3            break;
+ 392   3            case 6:
+ 393   3            pos = 0xc0;
+ 394   3            break;
+ 395   3            case 7:
+ 396   3            pos = 0x80;
+ 397   3            break;
+ 398   3            default:
+ 399   3            break;
+ 400   3      
+ 401   3          }
+ 402   2        }
+ 403   1        if(y%8==0){
+ 404   2           y2=y/8;
+ 405   2           pos1 = 0x01;
+ 406   2        }
+ 407   1        else{
+ 408   2          y2 = y/8;
+ 409   2          mod1 = y%8;
+ 410   2          switch(mod1)
+ 411   2          {
+ 412   3            case 1:
+ 413   3            pos1 = 0x03;
+ 414   3            break;
+ 415   3            case 2:
+ 416   3            pos1 = 0x07;
+ 417   3            break;
+ 418   3            case 3:
+ 419   3            pos1 = 0x0f;
+ 420   3            break;
+ 421   3            case 4:
+ 422   3            pos1 = 0x1f;
+ 423   3            break;
+ 424   3            case 5:
+ 425   3            pos1 = 0x3f;
+ 426   3            break;
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 8   
+
+ 427   3            case 6:
+ 428   3            pos1 = 0x7f;
+ 429   3            break;
+ 430   3            case 7:
+ 431   3            pos1 = 0xff;
+ 432   3            break;
+ 433   3            default:
+ 434   3            break;
+ 435   3      
+ 436   3          }
+ 437   2        }
+ 438   1        OLED_Set_Pos(x0,y2);
+ 439   1        OLED_WR_Byte(pos1,1);
+ 440   1        Delay_1ms(time);
+ 441   1        OLED_Set_Pos(x0,y1+1);
+ 442   1        for(i=y2-1;i>y1;i--)
+ 443   1        {
+ 444   2          Delay_1ms(time);
+ 445   2          OLED_Set_Pos(x0,i);
+ 446   2          OLED_WR_Byte(0xff,1); 
+ 447   2        } 
+ 448   1          OLED_Set_Pos(x0,y1);
+ 449   1        Delay_1ms(time);
+ 450   1        OLED_WR_Byte(pos,1);
+ 451   1      
+ 452   1      
+ 453   1      }
+ 454          
+ 455          void Draw_Rectangle(unsigned char x0,unsigned char y0,unsigned char x,unsigned char y,unsigned int time)
+ 456          {
+ 457   1         Draw_Hline(x0,x-1,y0,time);
+ 458   1      
+ 459   1         Draw_Vline(y0,y,x,time*8);
+ 460   1      
+ 461   1         Draw_Hline(x0+1,x-1,y,time);
+ 462   1      
+ 463   1         Draw_VlineF(y0,y,x0,time*8);
+ 464   1      
+ 465   1      
+ 466   1      }/*
+ 467          void Draw_RectangleF(unsigned char x0,unsigned char y0,unsigned char x,unsigned char y,unsigned int time)
+ 468          {
+ 469             Draw_Hline(x0,x-1,y0,time);
+ 470             Delay_50ms(10);
+ 471             Draw_Vline(y0,y,x0,time);
+ 472             Delay_50ms(10);
+ 473             Draw_Hline(x0+1,x-1,y,time);
+ 474             Delay_50ms(10);
+ 475             Draw_VlineF(y0,y,x,time);
+ 476             Delay_50ms(10);
+ 477          
+ 478          }
+ 479          */
+ 480          void Setpos(unsigned char x0,unsigned char y0)
+ 481          {
+ 482   1        unsigned char y,mod,pos;
+ 483   1        if(y0%8==0){
+ 484   2           y=y0/8;
+ 485   2           pos = 0x01;
+ 486   2        }
+ 487   1        else{
+ 488   2          y = y0/8;
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 9   
+
+ 489   2          mod = y0%8;
+ 490   2          switch(mod)
+ 491   2          {
+ 492   3            case 1:
+ 493   3            pos = 0x02;
+ 494   3            break;
+ 495   3            case 2:
+ 496   3            pos = 0x04;
+ 497   3            break;
+ 498   3            case 3:
+ 499   3            pos = 0x08;
+ 500   3            break;
+ 501   3            case 4:
+ 502   3            pos = 0x10;
+ 503   3            break;
+ 504   3            case 5:
+ 505   3            pos = 0x20;
+ 506   3            break;
+ 507   3            case 6:
+ 508   3            pos = 0x40;
+ 509   3            break;
+ 510   3            case 7:
+ 511   3            pos = 0x80;
+ 512   3            break;
+ 513   3            default:
+ 514   3            break;
+ 515   3      
+ 516   3          }
+ 517   2        }
+ 518   1        OLED_Set_Pos(x0,y);
+ 519   1        OLED_WR_Byte(pos,1);
+ 520   1      
+ 521   1      }
+ 522          
+ 523          void OLED_DrawLine(int x1,int y1,int x2,int y2)
+ 524          {
+ 525   1          int dx,dy,e;
+ 526   1          dx=x2-x1; 
+ 527   1          dy=y2-y1;
+ 528   1          if(dx>=0)
+ 529   1          {
+ 530   2              if(dy >= 0) // dy>=0
+ 531   2              {
+ 532   3                  if(dx>=dy) // 1/8 octant
+ 533   3                  {
+ 534   4                      e=dy-dx/2;
+ 535   4                      while(x1<=x2)
+ 536   4                      {
+ 537   5                          Setpos(x1,y1);
+ 538   5                          if(e>0){y1+=1;e-=dx;}   
+ 539   5                          x1+=1;
+ 540   5                          e+=dy;
+ 541   5                      }
+ 542   4                  }
+ 543   3                  else        // 2/8 octant
+ 544   3                  {
+ 545   4                      e=dx-dy/2;
+ 546   4                      while(y1<=y2)
+ 547   4                      {
+ 548   5                          Setpos(x1,y1);
+ 549   5                          if(e>0){x1+=1;e-=dy;}   
+ 550   5                          y1+=1;
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 10  
+
+ 551   5                          e+=dx;
+ 552   5                      }
+ 553   4                  }
+ 554   3              }
+ 555   2              else           // dy<0
+ 556   2              {
+ 557   3                  dy=-dy;   // dy=abs(dy)
+ 558   3                  if(dx>=dy) // 8/8 octant
+ 559   3                  {
+ 560   4                      e=dy-dx/2;
+ 561   4                      while(x1<=x2)
+ 562   4                      {
+ 563   5                          Setpos(x1,y1);
+ 564   5                          if(e>0){y1-=1;e-=dx;}   
+ 565   5                          x1+=1;
+ 566   5                          e+=dy;
+ 567   5                      }
+ 568   4                  }
+ 569   3                  else        // 7/8 octant
+ 570   3                  {
+ 571   4                      e=dx-dy/2;
+ 572   4                      while(y1>=y2)
+ 573   4                      {
+ 574   5                          Setpos(x1,y1);
+ 575   5                          if(e>0){x1+=1;e-=dy;}   
+ 576   5                          y1-=1;
+ 577   5                          e+=dx;
+ 578   5                      }
+ 579   4                  }
+ 580   3              }   
+ 581   2          }
+ 582   1          else //dx<0
+ 583   1          {
+ 584   2              dx=-dx;     //dx=abs(dx)
+ 585   2              if(dy >= 0) // dy>=0
+ 586   2              {
+ 587   3                  if(dx>=dy) // 4/8 octant
+ 588   3                  {
+ 589   4                      e=dy-dx/2;
+ 590   4                      while(x1>=x2)
+ 591   4                      {
+ 592   5                          Setpos(x1,y1);
+ 593   5                          if(e>0){y1+=1;e-=dx;}   
+ 594   5                          x1-=1;
+ 595   5                          e+=dy;
+ 596   5                      }
+ 597   4                  }
+ 598   3                  else        // 3/8 octant
+ 599   3                  {
+ 600   4                      e=dx-dy/2;
+ 601   4                      while(y1<=y2)
+ 602   4                      {
+ 603   5                        Setpos(x1,y1);
+ 604   5      
+ 605   5                          if(e>0){x1-=1;e-=dy;}   
+ 606   5                          y1+=1;
+ 607   5                          e+=dx;
+ 608   5                      }
+ 609   4                  }
+ 610   3              }
+ 611   2              else           // dy<0
+ 612   2              {
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 11  
+
+ 613   3                  dy=-dy;   // dy=abs(dy)
+ 614   3                  if(dx>=dy) // 5/8 octant
+ 615   3                  {
+ 616   4                      e=dy-dx/2;
+ 617   4                      while(x1>=x2)
+ 618   4                      {
+ 619   5                         Setpos(x1,y1);
+ 620   5                          if(e>0){y1-=1;e-=dx;}   
+ 621   5                          x1-=1;
+ 622   5                          e+=dy;
+ 623   5                      }
+ 624   4                  }
+ 625   3                  else        // 6/8 octant
+ 626   3                  {
+ 627   4                      e=dx-dy/2;
+ 628   4                      while(y1>=y2)
+ 629   4                      {
+ 630   5                         Setpos(x1,y1);
+ 631   5                          if(e>0){x1-=1;e-=dy;}   
+ 632   5                          y1-=1;
+ 633   5                          e+=dx;
+ 634   5                      }
+ 635   4                  }
+ 636   3              }   
+ 637   2          }
+ 638   1      }
+ 639          
+ 640          void Draw_dimond(unsigned char x0,unsigned char y0,unsigned char R)
+ 641          {
+ 642   1        unsigned char xi,yi,di;
+ 643   1        di = 0-(R>>1);
+ 644   1        xi = 0;
+ 645   1        yi = R;
+ 646   1        while(yi>=xi)
+ 647   1        {
+ 648   2          Setpos(x0+xi-1,y0+yi-1);
+ 649   2          Setpos(x0+yi-1,y0+xi-1);
+ 650   2          Setpos(x0-xi,y0+yi-1);
+ 651   2          Setpos(x0-yi,y0+xi-1);
+ 652   2          Setpos(x0-xi,y0-yi);
+ 653   2          Setpos(x0-yi,y0-xi);
+ 654   2          Setpos(x0+xi-1,y0-yi);
+ 655   2          Setpos(x0+yi-1,y0-xi);
+ 656   2          xi++;
+ 657   2          if(di<0)
+ 658   2          {
+ 659   3            di+=xi;
+ 660   3      
+ 661   3          }
+ 662   2          else {
+ 663   3            yi--;
+ 664   3            di+=xi-yi;
+ 665   3          } 
+ 666   2        }
+ 667   1      }
+ 668          
+ 669          
+ 670          /***********************Delay****************************************/
+ 671          void Delay_50ms(unsigned int Del_50ms)
+ 672          {
+ 673   1        unsigned int m;
+ 674   1        for(;Del_50ms>0;Del_50ms--)
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 12  
+
+ 675   1          for(m=6245;m>0;m--);
+ 676   1      }
+ 677          
+ 678          void Delay_1ms(unsigned int Del_1ms)
+ 679          {
+ 680   1        unsigned char j;
+ 681   1        while(Del_1ms--)
+ 682   1        { 
+ 683   2          for(j=0;j<123;j++);
+ 684   2        }
+ 685   1      }
+ 686          
+ 687          //坐标设置
+ 688          
+ 689          void OLED_Set_Pos(unsigned char x, unsigned char y) 
+ 690          {   OLED_WR_Byte(0xb0+y,OLED_CMD);
+ 691   1        OLED_WR_Byte(((x&0xf0)>>4)|0x10,OLED_CMD);
+ 692   1        OLED_WR_Byte((x&0x0f),OLED_CMD); 
+ 693   1      }       
+ 694          //开启OLED显示    
+ 695          /*void OLED_Display_On(void)
+ 696          {
+ 697            OLED_WR_Byte(0X8D,OLED_CMD);  //SET DCDC命令
+ 698            OLED_WR_Byte(0X14,OLED_CMD);  //DCDC ON
+ 699            OLED_WR_Byte(0XAF,OLED_CMD);  //DISPLAY ON
+ 700          }
+ 701          //关闭OLED显示     
+ 702          void OLED_Display_Off(void)
+ 703          {
+ 704            OLED_WR_Byte(0X8D,OLED_CMD);  //SET DCDC命令
+ 705            OLED_WR_Byte(0X10,OLED_CMD);  //DCDC OFF
+ 706            OLED_WR_Byte(0XAE,OLED_CMD);  //DISPLAY OFF
+ 707          }            
+ 708          //清屏函数,清完屏,整个屏幕是黑色的!和没点亮一样!!!     */
+ 709          
+ 710          void OLED_Clear(void)  
+ 711          {  
+ 712   1        u8 i,n;       
+ 713   1        for(i=0;i<8;i++)  
+ 714   1        {  
+ 715   2          OLED_WR_Byte (0xb0+i,OLED_CMD);    //设置页地址（0~7）
+ 716   2          OLED_WR_Byte (0x00,OLED_CMD);      //设置显示位置—列低地址
+ 717   2          OLED_WR_Byte (0x10,OLED_CMD);      //设置显示位置—列高地址   
+ 718   2          for(n=0;n<128;n++)OLED_WR_Byte(0,OLED_DATA); 
+ 719   2        } //更新显示
+ 720   1      }
+ 721          /*void OLED_On(void)  
+ 722          {  
+ 723            u8 i,n;       
+ 724            for(i=0;i<8;i++)  
+ 725            {  
+ 726              OLED_WR_Byte (0xb0+i,OLED_CMD);    //设置页地址（0~7）
+ 727              OLED_WR_Byte (0x00,OLED_CMD);      //设置显示位置—列低地址
+ 728              OLED_WR_Byte (0x10,OLED_CMD);      //设置显示位置—列高地址   
+ 729              for(n=0;n<128;n++)OLED_WR_Byte(1,OLED_DATA); 
+ 730            } //更新显示
+ 731          }
+ 732          //在指定位置显示一个字符,包括部分字符
+ 733          //x:0~127
+ 734          //y:0~63
+ 735          //mode:0,反白显示;1,正常显示         
+ 736          //size:选择字体 16/12 */     
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 13  
+
+ 737          void OLED_ShowChar(u8 x,u8 y,u8 chr,u8 Char_Size)
+ 738          {       
+ 739   1        unsigned char c=0,i=0;  
+ 740   1          c=chr-' ';//得到偏移后的值      
+ 741   1          if(x>Max_Column-1){x=0;y=y+2;}
+ 742   1          if(Char_Size ==16)
+ 743   1            {
+ 744   2            OLED_Set_Pos(x,y);  
+ 745   2            for(i=0;i<8;i++)
+ 746   2            OLED_WR_Byte(F8X16[c*16+i],OLED_DATA);
+ 747   2            OLED_Set_Pos(x,y+1);
+ 748   2            for(i=0;i<8;i++)
+ 749   2            OLED_WR_Byte(F8X16[c*16+i+8],OLED_DATA);
+ 750   2            }
+ 751   1            else {  
+ 752   2              OLED_Set_Pos(x,y);
+ 753   2              for(i=0;i<6;i++)
+ 754   2              OLED_WR_Byte(F6x8[c][i],OLED_DATA);
+ 755   2              
+ 756   2            }
+ 757   1      }
+ 758                    
+ 759          //m^n函数
+ 760          u32 oled_pow(u8 m,u8 n)
+ 761          {
+ 762   1        u32 result=1;  
+ 763   1        while(n--)result*=m;    
+ 764   1        return result;
+ 765   1      }         
+ 766          //显示2个数字
+ 767          //x,y :起点坐标  
+ 768          //len :数字的位数
+ 769          //size:字体大小
+ 770          //mode:模式 0,填充模式;1,叠加模式
+ 771          //num:数值(0~4294967295);
+ 772                  
+ 773          void OLED_ShowNum(u8 x,u8 y,u32 num,u8 len,u8 size2)
+ 774          {           
+ 775   1        u8 t,temp;
+ 776   1        u8 enshow=0;               
+ 777   1        for(t=0;t<len;t++)
+ 778   1        {
+ 779   2          temp=(num/oled_pow(10,len-t-1))%10;
+ 780   2          if(enshow==0&&t<(len-1))
+ 781   2          {
+ 782   3            if(temp==0)
+ 783   3            {
+ 784   4              OLED_ShowChar(x+(size2/2)*t,y,' ',size2);
+ 785   4              continue;
+ 786   4            }else enshow=1; 
+ 787   3             
+ 788   3          }
+ 789   2          OLED_ShowChar(x+(size2/2)*t,y,temp+'0',size2); 
+ 790   2        }
+ 791   1      } 
+ 792          
+ 793          void OLED_ShowString(u8 x,u8 y,u8 *chr,u8 Char_Size)
+ 794          {
+ 795   1        unsigned char j=0;
+ 796   1        while (chr[j]!='\0')
+ 797   1        {   OLED_ShowChar(x,y,chr[j],Char_Size);
+ 798   2            x+=8;
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 14  
+
+ 799   2          if(x>120){x=0;y+=2;}
+ 800   2            j++;
+ 801   2        }
+ 802   1      }
+ 803          
+ 804                
+ 805          
+ 806          //屏幕滑动
+ 807          /*
+ 808          void Scroll()
+ 809          {   
+ 810            OLED_WR_Byte(0X2A,OLED_CMD);
+ 811            OLED_WR_Byte(0X00,OLED_CMD);
+ 812            OLED_WR_Byte(0X00,OLED_CMD);
+ 813            OLED_WR_Byte(0X02,OLED_CMD);
+ 814            OLED_WR_Byte(0X07,OLED_CMD);
+ 815            OLED_WR_Byte(0X2F,OLED_CMD);
+ 816          }       /*
+ 817          //显示汉字
+ 818          void OLED_ShowCHinese(u8 x,u8 y,u8 no)
+ 819          {               
+ 820            u8 t,adder=0;
+ 821            OLED_Set_Pos(x,y);  
+ 822              for(t=0;t<16;t++)
+ 823              {
+ 824                  OLED_WR_Byte(Hzk[2*no][t],OLED_DATA);
+ 825                  adder+=1;
+ 826               }  
+ 827              OLED_Set_Pos(x,y+1);  
+ 828              for(t=0;t<16;t++)
+ 829                { 
+ 830                  OLED_WR_Byte(Hzk[2*no+1][t],OLED_DATA);
+ 831                  adder+=1;
+ 832                }         
+ 833          }   */
+ 834          
+ 835          
+ 836          /***********功能描述：显示显示BMP图片128×64起始点坐标(x,y),x的范围0～127，y为页的范围0～7****************
+             -*/
+ 837          /*void OLED_DrawBMP(unsigned char x0, unsigned char y0,unsigned char x1, unsigned char y1,unsigned char BM
+             -P[])
+ 838          {   
+ 839           unsigned int j=0;
+ 840           unsigned char x,y;
+ 841            if(y1%8==0) y=y1/8;      
+ 842            else y=y1/8+1;
+ 843            for(y=y0;y<y1;y++)
+ 844            {
+ 845              OLED_Set_Pos(x0,y);
+ 846              for(x=x0;x<x1;x++)
+ 847                {   
+ 848                OLED_WR_Byte(0x81,0);
+ 849                OLED_WR_Byte(BMP[j++],1);   
+ 850                  OLED_WR_Byte(BMP[j++],OLED_DATA);
+ 851                        
+ 852                }
+ 853            }
+ 854          } 
+ 855             */
+ 856          //初始化SSD1306             
+ 857          void OLED_Init(void)
+ 858          {   
+C51 COMPILER V9.54   OLED                                                                  07/05/2022 15:24:24 PAGE 15  
+
+ 859   1       
+ 860   1        OLED_WR_Byte(0xAE,OLED_CMD);//--display off
+ 861   1        OLED_WR_Byte(0x00,OLED_CMD);//---set low column address
+ 862   1        OLED_WR_Byte(0x10,OLED_CMD);//---set high column address
+ 863   1        OLED_WR_Byte(0x40,OLED_CMD);//--set start line address  
+ 864   1        OLED_WR_Byte(0xB0,OLED_CMD);//--set page address
+ 865   1        OLED_WR_Byte(0x81,OLED_CMD); // contract control
+ 866   1        OLED_WR_Byte(0xFF,OLED_CMD);//--128   
+ 867   1        OLED_WR_Byte(0xA1,OLED_CMD);//set segment remap 
+ 868   1        OLED_WR_Byte(0xA6,OLED_CMD);//--normal / reverse
+ 869   1        OLED_WR_Byte(0xA8,OLED_CMD);//--set multiplex ratio(1 to 64)
+ 870   1        OLED_WR_Byte(0x3F,OLED_CMD);//--1/32 duty
+ 871   1        OLED_WR_Byte(0xC8,OLED_CMD);//Com scan direction
+ 872   1        OLED_WR_Byte(0xD3,OLED_CMD);//-set display offset
+ 873   1        OLED_WR_Byte(0x00,OLED_CMD);//
+ 874   1        
+ 875   1        OLED_WR_Byte(0xD5,OLED_CMD);//set osc division
+ 876   1        OLED_WR_Byte(0x80,OLED_CMD);//
+ 877   1        
+ 878   1        OLED_WR_Byte(0xD8,OLED_CMD);//set area color mode off
+ 879   1        OLED_WR_Byte(0x05,OLED_CMD);//
+ 880   1        
+ 881   1        OLED_WR_Byte(0xD9,OLED_CMD);//Set Pre-Charge Period
+ 882   1        OLED_WR_Byte(0xF1,OLED_CMD);//
+ 883   1        
+ 884   1        OLED_WR_Byte(0xDA,OLED_CMD);//set com pin configuartion
+ 885   1        OLED_WR_Byte(0x12,OLED_CMD);//
+ 886   1        
+ 887   1        OLED_WR_Byte(0xDB,OLED_CMD);//set Vcomh
+ 888   1        OLED_WR_Byte(0x30,OLED_CMD);//
+ 889   1        
+ 890   1        OLED_WR_Byte(0x8D,OLED_CMD);//set charge pump enable
+ 891   1        OLED_WR_Byte(0x14,OLED_CMD);//
+ 892   1        
+ 893   1        OLED_WR_Byte(0xAF,OLED_CMD);//--turn on oled panel
+ 894   1      }  
+ 895          
+ 896          
+ 897          
+ 898          
+ 899          
+ 900          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3347    ----
+   CONSTANT SIZE    =   2136    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      88
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -35,13 +35,13 @@ Simple project on temperature measurements using Cadence.
 
 ### 电源稳压模块
 
-![image-20220711110410681](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711110410681.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482388-1926c234-4168-4cca-9a07-01491116315f.png)
 
 J1焊接电源正负极两根导线，通过自锁开关J2控制电源是否供电。当开关未按下时，DIN9V没有输入；按下后，使用LM7805稳压模块能将输入的9伏电池电压Vi转化成可以给单片机供电的5V电压Vo。Vo处接一0.1uF的滤波电容。
 
 ### LED指示模块、
 
-![image-20220711110856212](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711110856212.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482398-b08d82ca-5daf-4dcc-9300-196bce46a347.png)
 
 通过三个共地发光二极管显示不同的工作状态。
 
@@ -50,36 +50,35 @@ BTACTIVE连接蓝牙模块的STATE引脚，当蓝牙成功连接时亮。
 P20、P21则表示单片机正常工作和温度警告时的状态。
 
 ### 复位模块
-
-![image-20220711111404816](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711111404816.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482404-9e1eae5c-cdc9-4fbd-aa25-f60c8acaeddc.png)
 
 电容起隔直流的作用，当按钮按下时RST段接入高电平，单片机复位。
 
 ### 蜂鸣器模块
 
-![image-20220711111604885](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711111604885.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482409-bce0811a-a364-41b4-8050-768f931bb284.png)
 
 P21驱动蜂鸣器，当温度超过报警温度时，P21通过软件置0，NPN三极管导通，工作在放大区放大蜂鸣器驱动电流。
 
 ### 晶振
 
-![image-20220711111832124](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711111832124.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482413-36d7a90e-a32f-4a40-b09e-5c8d9aeb0bc1.png)
 
 ### LCD1602模块
 
-![image-20220711111847292](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711111847292.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482416-e5198cda-41f5-4d56-a591-2ef234207616.png)
 
 RS、RW、E三个控制口接入P33、P34、P35；数据输入选择P1口。
 
 ### 按键控制模块
 
-![image-20220711112515393](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711112515393.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482419-3bcc9676-3a9d-4656-9a6f-cf544629416c.png)
 
 当按键按下时通过软件检测对应口的电平状况，进一步控制。
 
 ### 单片机主体
 
-![image-20220711112821811](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711112821811.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482423-60c49674-0bf9-44c2-aecc-5cd0c687f4e6.png)
 
 ALE，PSEN_N、P32脚未使用可以悬空，EA_N通过电阻与VCC相连读取片内ROM。
 
@@ -87,27 +86,26 @@ P07作为输入输出时需要外接上拉电阻确保有足够的驱动能力�
 
 ### OLED
 
-![image-20220711112916065](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711112916065.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482427-b707b8e5-e0bc-4f21-a7ce-223238df488c.png)
 
 ### USB转TTL烧写模块
 
-![image-20220711112943330](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711112943330.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482430-8fb30733-2e31-47c6-b243-053981b4b343.png)
 
 ### 蓝牙HC05模块
 
-![image-20220711113006865](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711113006865.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482434-6a5d8af6-8836-4593-a6ff-afc1e058ff55.png)
 
 STATE与LED相连，能够更明显的显示蓝牙是否连接成功
 
 ### MLX90614测温模块
-
-![image-20220711113117377](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711113117377.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482439-4a686d38-cf39-442f-bc31-4b251785780f.png)
 
 SCL、SDA接P36、P37，与OLED的接线相同，但因为IIC协议从机地址不同，不会产生干扰
 
 ## PCB设计
 
-![image-20220711113235291](C:\Users\MSI-NB\AppData\Roaming\Typora\typora-user-images\image-20220711113235291.png)
+![图片](https://user-images.githubusercontent.com/115352148/224482448-99ccf5bc-12ae-4e4c-a12a-e7c7f8272f65.png)
 
 ## 软件设计思路、流程图
 
@@ -123,9 +121,7 @@ SCL、SDA接P36、P37，与OLED的接线相同，但因为IIC协议从机地址�
 
 ### 上电后开机动画
 
-OLED屏幕和LCD屏幕显示不同的内容![IMG_7377](D:\新建文件夹\MobileFile\IMG_7377.JPG)
-
-![IMG_7378](D:\新建文件夹\MobileFile\IMG_7378.JPG)
+OLED屏幕和LCD屏幕显示不同的内容
 
 ### 测温主界面
 
@@ -133,8 +129,7 @@ LCD屏幕显示当前的测温模式：SURF－表面温度，BODY－体温。显
 
 ### 测温副界面
 
-OLED屏幕显示储存的12个温度值，还未读入的为0.0，已经读入的保留二位小数。![IMG_7379](D:\新建文件夹\MobileFile\IMG_7379.JPG)
-
+OLED屏幕显示储存的12个温度值，还未读入的为0.0，已经读入的保留二位小数。
 ### ![IMG_7380](D:\新建文件夹\MobileFile\IMG_7380.JPG)
 
 
